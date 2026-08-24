@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.prod
+.env.*.local
+
+# 运行时数据（聊天存档、缓存等）
+data/
+aitalk_config/
+
+# 表情包图片（本地资源，不建议入库）
+src/plugins/memes/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# 敏感/一次性配置
+1.txt
+
+# 冗余备份（aitalk 第三方插件源码、旧版死代码）
+src/备用插件/
+src/chat.py
