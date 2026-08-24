@@ -2,7 +2,7 @@
 chcp 65001 >nul
 echo 正在启动 NoneBot 机器人...
 
-cd /d "D:\Q群bot\nanami_bot"
+cd /d "%~dp0"
 if not exist venv\Scripts\activate (
     echo 错误：未找到虚拟环境，请先创建 venv。
     pause
