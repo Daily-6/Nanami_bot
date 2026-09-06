@@ -61,6 +61,23 @@ nanami_bot/
 └── start.bat                             # Windows 启动脚本（激活 venv 后 nb run --reload）
 ```
 
+## 第三方依赖说明
+
+仓库**不包含**第三方插件的源码，统一通过 `pyproject.toml` 声明，`pip install -e .` 时自动安装。
+
+| pip 包 | 作用 | 是否直接使用 |
+|---|---|---|
+| `nonebot2` | NoneBot2 框架 | 是 |
+| `nonebot-adapter-onebot` | OneBot V11 协议适配（对接 NapCat）| 是 |
+| `nonebot-plugin-multincm` | 群内点歌（网易云/QQ音乐搜索点播）| 是 |
+| `nonebot-plugin-gpt-sovits` | GPT-SoVITS 语音合成（voice_chat 使用）| 是 |
+| `nonebot-plugin-alconna` | multincm 的指令解析依赖 | 间接（随 multincm 安装）|
+| `nonebot-plugin-htmlrender` | multincm 搜索结果渲染依赖 | 间接 |
+| `nonebot-plugin-localstore` | 本地存储目录约定 | 间接 |
+| `nonebot-plugin-waiter` | 等待用户后续输入（点歌选曲）| 间接 |
+
+> 说明：虚拟环境中额外装过 `nonebot-plugin-zyk-music`（网易云点歌）、`nonebot-plugin-apscheduler`，当前未被任何插件加载，不作为本仓库依赖。
+
 ## 快速开始
 
 1. 安装依赖并创建虚拟环境：
