@@ -16,7 +16,7 @@ if errorlevel 1 (
     exit /b 1
 )
 echo 虚拟环境已激活，正在运行 nb run...
-nb run
+nb run --reload
 
 rem 如果 nb run 意外退出，暂停查看信息
 pause
