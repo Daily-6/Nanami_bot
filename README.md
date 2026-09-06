@@ -46,10 +46,15 @@
 ```
 nanami_bot/
 ├── src/
-│   └── plugins/
-│       ├── voice_chat.py                 # AI 语音聊天主插件
-│       ├── voice_version_character_prompt.txt  # 语音版人设（外置，可单独编辑）
-│       └── ...                           # 其余插件
+│   ├── plugins/
+│   │   ├── voice_chat.py                 # AI 语音聊天主插件
+│   │   ├── voice_version_character_prompt.txt  # 语音版人设（外置，可单独编辑）
+│   │   └── ...                           # 其余插件
+│   └── 备用插件/                         # 自研旧版备份（不加载）
+│       ├── formalchat.py                 # 旧文本聊天版（含表情包功能）
+│       ├── character_prompt.txt          # 旧版人设
+│       └── chat_archive.py               # 旧版存档插件
+│       （注：本地另有第三方 aitalk 插件源码副本，因许可证原因未入库）
 ├── data/chat_archive/                    # 聊天存档（运行时生成，不入库）
 ├── .env.example                          # 配置模板（复制为 .env 填写真实值）
 ├── pyproject.toml
