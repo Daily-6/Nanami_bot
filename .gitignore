@@ -25,6 +25,7 @@ Thumbs.db
 # 敏感/一次性配置
 1.txt
 
-# 冗余备份（aitalk 第三方插件源码、旧版死代码）
-src/备用插件/
+# 冗余备份（旧版死代码）
+# src/备用插件/ 下自研旧版（formalchat.py 等）保留入库，第三方 aitalk 插件源码排除
+src/备用插件/aitalk/
 src/chat.py
