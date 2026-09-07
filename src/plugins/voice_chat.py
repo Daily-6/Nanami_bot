@@ -13,7 +13,7 @@ from nonebot.adapters.onebot.v11 import (
 )
 from nonebot.plugin import PluginMetadata
 
-# 导入 GPT-SoVITS 插件的工具函数和配置
+# 导入 GPT-SoVITS 插件工具（复用）
 from nonebot_plugin_gpt_sovits.utils import generate_v2, encode_to_silk
 from nonebot_plugin_gpt_sovits import plugin_config as gs_config
 
@@ -22,11 +22,11 @@ API_KEY = get_driver().config.deepseek_api_key
 BASE_URL = "https://api.deepseek.com"
 MODEL_NAME = "deepseek-v4-flash"
 
-# 人设文件
+# 人设文件（与 chat.py 共用，如果 chat.py 已移除则独立）
 PLUGIN_DIR = Path(__file__).parent
 CHARACTER_FILE = PLUGIN_DIR / "voice_version_character_prompt.txt"
 
-DEFAULT_PROMPT = """（你的默认人设，可以从 chat.py 复制）"""
+DEFAULT_PROMPT = """（完整人设，可复制自你之前的文件）"""
 
 def load_system_prompt():
     if not CHARACTER_FILE.exists():
@@ -51,9 +51,9 @@ chat_history = {}
 voice_chat = on_message(rule=to_me(), priority=9, block=True)
 
 __plugin_meta__ = PluginMetadata(
-    name="语音聊天",
-    description="七海千秋用语音回复 @ 消息",
-    usage="@机器人 发送消息，自动语音回复",
+    name="语音聊天与TTS",
+    description="七海千秋语音回复，支持 tts 直接朗读和 AI 对话朗读",
+    usage="@机器人 任意消息 → AI生成回复并朗读；tts 文本 → 直接朗读文本",
     type="application",
     supported_adapters={"~onebot.v11"},
 )
@@ -63,67 +63,18 @@ def get_user_id(event: MessageEvent) -> str:
         return f"group_{event.group_id}_user_{event.user_id}"
     return f"private_{event.user_id}"
 
-# ===================== 核心处理 =====================
-@voice_chat.handle()
-async def handle_voice_chat(event: MessageEvent):
-    user_msg = event.get_message().extract_plain_text().strip()
-    if not user_msg:
+# ===================== 语音合成核心函数 =====================
+async def synthesize_and_send(text: str, event: MessageEvent):
+    """合成语音并发送，失败则静默"""
+    if not text or not text.strip():
         return
-
-    # 忽略命令
-    if user_msg.lower().startswith(("tts", "重置对话", "reset", "清空记忆")):
-        return
-
-    user_id = get_user_id(event)
-
-    if user_id not in chat_history:
-        chat_history[user_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
-
-    chat_history[user_id].append({"role": "user", "content": user_msg})
-
-    # 截断历史
-    if len(chat_history[user_id]) > MAX_HISTORY * 2 + 1:
-        chat_history[user_id] = [chat_history[user_id][0]] + chat_history[user_id][-(MAX_HISTORY * 2):]
-
-    # ---------- 调用 DeepSeek 生成回复 ----------
-    try:
-        headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-        data = {
-            "model": MODEL_NAME,
-            "messages": chat_history[user_id],
-            "temperature": 0.85,
-        }
-        resp = requests.post(f"{BASE_URL}/chat/completions", headers=headers, json=data, timeout=30)
-        resp.raise_for_status()
-        result = resp.json()
-        reply_text = result["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        logger.error(f"AI 生成回复失败: {e}")
-        # 不发送任何文字，直接结束
-        return
-
-    # 保存历史
-    chat_history[user_id].append({"role": "assistant", "content": reply_text})
-
-    # ---------- 清理文本 ----------
-    clean_text = re.sub(r'\[meme:.*?\]', '', reply_text).strip()
-    if not clean_text:
-        # 如果清理后为空，也不回复
-        return
-
-    # 缩短文本
-    max_len = 150
-    if len(clean_text) > max_len:
-        clean_text = clean_text[:max_len] + "…"
-
-
-    # ---------- 语音合成 ----------
     try:
         emotion_map = gs_config.gpt_sovits_emotion_map
         if not emotion_map:
             logger.error("未配置 GPT_SOVITS_EMOTION_MAP")
             return
 
+        # 使用第一个情感配置
         first_emotion = emotion_map[0]
         sentence = random.choice(first_emotion.sentences)
         refer_path = sentence.path
@@ -132,16 +83,16 @@ async def handle_voice_chat(event: MessageEvent):
 
         wav_bytes = await generate_v2(
             base_url=gs_config.gpt_sovits_api_base_url,
-            text=clean_text,
-            text_lang="auto",
+            text=text,
+            text_lang="zh",
             ref_audio_path=refer_path,
             prompt_text=prompt_text,
             prompt_lang=prompt_lang,
-            top_k=gs_config.gpt_sovits_args.get("top_k", 5),
-            top_p=gs_config.gpt_sovits_args.get("top_p", 0.8),
-            temperature=gs_config.gpt_sovits_args.get("temperature",1.1),
+            top_k=gs_config.gpt_sovits_args.get("top_k", 3),
+            top_p=gs_config.gpt_sovits_args.get("top_p", 0.7),
+            temperature=gs_config.gpt_sovits_args.get("temperature", 0.8),
             text_split_method=gs_config.gpt_sovits_args.get("text_split_method", "cut3"),
-            speed_factor=gs_config.gpt_sovits_args.get("speed_factor", 0.9),
+            speed_factor=gs_config.gpt_sovits_args.get("speed_factor", 0.95),
             volume=gs_config.gpt_sovits_args.get("volume", 1.0),
         )
 
@@ -150,8 +101,81 @@ async def handle_voice_chat(event: MessageEvent):
             await voice_chat.finish(MessageSegment.record(silk_bytes))
         else:
             await voice_chat.finish(MessageSegment.record(wav_bytes))
-
     except Exception as e:
         logger.error(f"语音合成失败: {e}")
-        # 语音失败，不发送任何消息，静默结束
+        # 静默失败，不发送任何消息
+
+# ===================== 主处理 =====================
+@voice_chat.handle()
+async def handle_voice_chat(event: MessageEvent):
+    raw_msg = event.get_message().extract_plain_text().strip()
+    if not raw_msg:
         return
+
+    # ----- 情况1：tts 命令（直接朗读） -----
+    if raw_msg.lower().startswith("tts"):
+        # 提取 tts 后面的文本，去除多余空格
+        text_to_read = raw_msg[3:].strip()
+        if not text_to_read:
+            # 如果只发了 tts 没有文字，不回复
+            return
+        # 直接合成语音并发送（不经过AI）
+        await synthesize_and_send(text_to_read, event)
+        return  # 结束，不继续后续
+
+    # ----- 情况2：普通聊天（AI生成回复后朗读） -----
+    user_id = get_user_id(event)
+
+    if user_id not in chat_history:
+        chat_history[user_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    chat_history[user_id].append({"role": "user", "content": raw_msg})
+
+    # 截断历史
+    if len(chat_history[user_id]) > MAX_HISTORY * 2 + 1:
+        chat_history[user_id] = [chat_history[user_id][0]] + chat_history[user_id][-(MAX_HISTORY * 2):]
+
+    # 调用 DeepSeek API
+    try:
+        headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+        data = {
+            "model": MODEL_NAME,
+            "messages": chat_history[user_id],
+            "temperature": 0.85,
+            "max_tokens": 260,  # 限制生成长度（约200字），让AI自然收尾而不是生成长文再截断
+        }
+        resp = requests.post(f"{BASE_URL}/chat/completions", headers=headers, json=data, timeout=30)
+        resp.raise_for_status()
+        result = resp.json()
+        reply_text = result["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        logger.error(f"AI 生成回复失败: {e}")
+        return  # 静默失败
+
+    # 保存历史
+    chat_history[user_id].append({"role": "assistant", "content": reply_text})
+
+    # 清理文本：去掉动作/神态/表情包标记
+    reply_text = re.sub(r'[（(][^）)]*[）)]', '', reply_text)          # 括号内容
+    reply_text = re.sub(r'\*[^*]*\*', '', reply_text)                 # *动作*
+    reply_text = re.sub(r'\*\*[^*]*\*\*', '', reply_text)             # **动作**
+    reply_text = re.sub(r'\[meme:.*?\]', '', reply_text)              # [meme:描述]
+    reply_text = re.sub(r'^七海千秋[：:]', '', reply_text)            # 前缀
+    reply_text = re.sub(r'\s+', ' ', reply_text).strip()
+
+    if not reply_text:
+        return
+
+    # 兜底：尽量在句子边界截断，避免切断句子（正常情况已被 prompt 和 max_tokens 约束）
+    max_len = 200
+    if len(reply_text) > max_len:
+        # 在 200 字前最近的句子结束符处断开
+        cut = reply_text[:max_len]
+        boundary = max(cut.rfind(c) for c in "。！？!?…")
+        if boundary > max_len * 0.6:  # 找到的边界不太靠后就不硬切
+            reply_text = cut[: boundary + 1]
+        else:
+            reply_text = cut + "…"
+
+    # 合成语音并发送
+    await synthesize_and_send(reply_text, event)
