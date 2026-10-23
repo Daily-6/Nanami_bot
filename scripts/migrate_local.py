@@ -256,7 +256,7 @@ def sync_plugin(source: Path, runtime: Path):
 
 
 def activate_napcat(runtime: Path, napcat_root: Path):
-    config = json.loads((runtime / "data/cmd_config.json").read_text(encoding="utf-8"))
+    config = json.loads((runtime / "data/cmd_config.json").read_text(encoding="utf-8-sig"))
     platform = next(p for p in config["platform"] if p["id"] == "nanami_qq")
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     manifest = []

@@ -58,7 +58,7 @@ def main():
                 for value in obj:
                     collect(value)
 
-        collect(json.loads(runtime_config.read_text(encoding="utf-8")))
+        collect(json.loads(runtime_config.read_text(encoding="utf-8-sig")))
     names = subprocess.check_output(
         git + ["diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z"]
         if args.staged
