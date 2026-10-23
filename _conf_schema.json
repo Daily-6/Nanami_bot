@@ -1,0 +1,12 @@
+{
+  "enable_archive": {"description": "启用群聊存档", "type": "bool", "default": true},
+  "enable_interactions": {"description": "启用点赞、戳一戳和贴表情", "type": "bool", "default": true},
+  "enable_mirror": {"description": "启用图片对称", "type": "bool", "default": true},
+  "enable_music": {"description": "启用网易云/QQ 点歌", "type": "bool", "default": true},
+  "enable_tts_command": {"description": "启用 tts 直接朗读", "type": "bool", "default": true},
+  "clean_spoken_reply": {"description": "清理 AI 回复中的动作标记（启用语音时）", "type": "bool", "default": true},
+  "speech_max_chars": {"description": "语音回复最大字数", "type": "int", "default": 200, "hint": "仅在当前会话开启语音合成时处理 AI 回复，文字模式不截断。"},
+  "interaction_cooldown_seconds": {"description": "同一用户互动冷却秒数", "type": "int", "default": 10},
+  "music_result_count": {"description": "点歌搜索结果数量", "type": "int", "default": 5},
+  "selection_timeout_seconds": {"description": "选歌/等待图片的有效秒数", "type": "int", "default": 30}
+}

@@ -4,9 +4,8 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
-.env
-.env.prod
-.env.*.local
+.env*
+!.env.example
 
 # 运行时数据（聊天存档、缓存等）
 data/
@@ -29,3 +28,22 @@ Thumbs.db
 # src/备用插件/ 下自研旧版（formalchat.py 等）保留入库，第三方 aitalk 插件源码排除
 src/备用插件/aitalk/
 src/chat.py
+
+# AstrBot: all local credentials, sessions, models and backups stay outside Git
+.astrbot/
+.runtime/
+AstrBot/
+work/
+backups/
+local-access.txt
+*.local.json
+*.sqlite*
+*.db
+*.db-*
+*.wav
+*.mp3
+*.silk
+*.pth
+*.ckpt
+.pytest_cache/
+.ruff_cache/

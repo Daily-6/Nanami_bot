@@ -1,23 +1,20 @@
 @echo off
 chcp 65001 >nul
-echo 正在启动 NoneBot 机器人...
+set PYTHONUTF8=1
+set PYTHONIOENCODING=utf-8
 
 cd /d "%~dp0"
-if not exist venv\Scripts\activate (
-    echo 错误：未找到虚拟环境，请先创建 venv。
+set "NANAMI_RUNTIME=%~dp0..\AstrBot"
+if defined NANAMI_ASTRBOT_ROOT set "NANAMI_RUNTIME=%NANAMI_ASTRBOT_ROOT%"
+if not exist "%NANAMI_RUNTIME%\.venv\Scripts\python.exe" (
+    echo AstrBot is not installed. Run setup_astrbot.ps1 first.
     pause
     exit /b 1
 )
 
-call venv\Scripts\activate
-if errorlevel 1 (
-    echo 激活虚拟环境失败。
-    pause
-    exit /b 1
-)
-echo 虚拟环境已激活，正在运行 nb run...
-nb run --reload
+echo Starting Nanami AstrBot. Dashboard: http://127.0.0.1:6185
+"%NANAMI_RUNTIME%\.venv\Scripts\python.exe" "%~dp0scripts\run_astrbot.py"
 
-rem 如果 nb run 意外退出，暂停查看信息
+rem Keep errors visible if AstrBot exits unexpectedly.
 pause
 

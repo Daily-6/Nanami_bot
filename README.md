@@ -1,4 +1,16 @@
-# nanami_bot
+# Nanami Bot · 七海千秋（AstrBot 版）
+
+现已迁移为 **AstrBot 自定义插件**，继续使用 NapCat 和 GPT-SoVITS。模型、人设、会话、语音及自定义功能开关在网页面板管理。
+
+**启动：** `start.bat`；**面板：** http://127.0.0.1:6185 。面板用户名及随机密码只保存在仓库外的 `../AstrBot/local-access.txt`。
+
+- [安装、迁移、插件开发和回退指南](docs/ASTRBOT_MIGRATION.md)
+- [安全说明](SECURITY.md)
+- 插件入口：`main.py`；面板配置：`_conf_schema.json`；独立逻辑：`nanami_core.py`。
+- Python 3.12+，迁移基线 AstrBot 4.29.1。`setup_astrbot.ps1` 安装独立环境；`requirements.txt` 是插件依赖。
+- 原 NoneBot 源码保留于 `src/`，旧启动器为 `start-nonebot.bat`。下文为旧版参考；新部署请使用迁移指南。
+
+## 旧版 NoneBot 说明（回退参考）
 
 基于 [NoneBot2](https://nonebot.dev/) + OneBot V11 协议的 QQ 群机器人，角色为「七海千秋」。支持 **AI 文字对话 + GPT-SoVITS 语音回复**。
 

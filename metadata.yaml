@@ -1,0 +1,9 @@
+name: astrbot_plugin_nanami
+display_name: 七海千秋 · Nanami
+desc: 从 Nanami NoneBot 项目迁移的语音朗读、群聊存档、图片对称、点歌与 QQ 互动。
+version: v1.0.0
+author: Daily-6
+repo: https://github.com/Daily-6/Nanami_bot
+support_platforms:
+  - aiocqhttp
+astrbot_version: ">=4.29.1,<5"
