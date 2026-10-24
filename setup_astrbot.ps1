@@ -15,7 +15,7 @@ if (-not (Test-Path -LiteralPath $runtimePython)) {
     & $Python -m venv (Join-Path $runtimePath ".venv")
     if ($LASTEXITCODE -ne 0) { throw "Could not create the Python environment (requires Python 3.12+)." }
 }
-& $runtimePython -m pip install --index-url https://pypi.org/simple "AstrBot==4.29.1" python-dotenv -r (Join-Path $PSScriptRoot "requirements.txt")
+& $runtimePython -m pip install --index-url https://pypi.org/simple "AstrBot==4.29.1" python-dotenv -r (Join-Path $PSScriptRoot "requirements.txt") -r (Join-Path $PSScriptRoot "requirements-control-panel.txt")
 if ($LASTEXITCODE -ne 0) { throw "Could not install AstrBot dependencies." }
 $migrationArgs = @((Join-Path $PSScriptRoot "scripts\migrate_local.py"), "--runtime", $runtimePath)
 if (Test-Path -LiteralPath (Join-Path $runtimePath "data\cmd_config.json")) {
@@ -28,4 +28,4 @@ if ($ActivateNapCat) {
 $env:PYTHONUTF8 = "1"
 & $runtimePython @migrationArgs
 if ($LASTEXITCODE -ne 0) { throw "Migration did not complete. Existing NoneBot files were kept." }
-Write-Host "Ready. Start start.bat; login details are in the runtime's local-access.txt."
+Write-Host "Ready. Open the control-panel VBS launcher to manage services manually. No startup entry was created."

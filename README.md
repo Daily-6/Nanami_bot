@@ -2,8 +2,11 @@
 
 现已迁移为 **AstrBot 自定义插件**，继续使用 NapCat 和 GPT-SoVITS。模型、人设、会话、语音及自定义功能开关在网页面板管理。
 
-**启动：** `start.bat`；**面板：** http://127.0.0.1:6185 。面板用户名及随机密码只保存在仓库外的 `../AstrBot/local-access.txt`。
+**日常使用：双击 `控制面板.vbs`。** 打开控制台不会启动服务，也不添加开机自启。可以分别启停 AstrBot、NapCat 和语音服务，登录后管理机器人和插件；关闭控制台会停止它启动的服务。
 
+首次使用先启动 AstrBot、NapCat，再用你当前的 AstrBot 账号密码“登录管理”，选择机器人点“启用选中机器人”。语音服务按需启动。每次从控制台启动 AstrBot，机器人回复默认暂停，直到你手动启用。详细设置仍可打开 [AstrBot 网页面板](http://127.0.0.1:6185)。初次部署生成的密码在仓库外的 `../AstrBot/local-access.txt`；改过密码后使用新密码。
+
+- [控制台使用说明](docs/CONTROL_PANEL.md)
 - [安装、迁移、插件开发和回退指南](docs/ASTRBOT_MIGRATION.md)
 - [安全说明](SECURITY.md)
 - 插件入口：`main.py`；面板配置：`_conf_schema.json`；独立逻辑：`nanami_core.py`。
