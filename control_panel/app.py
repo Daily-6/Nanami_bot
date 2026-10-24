@@ -10,6 +10,7 @@ from pathlib import Path
 from tkinter import messagebox, scrolledtext, ttk
 
 from .backend import AstrBotAPI, PanelError, Paths, Services
+from .display import configure_window, enable_high_dpi, pixels
 
 
 class ControlPanel:
@@ -24,14 +25,15 @@ class ControlPanel:
         self.states = {}
         self.plugin_data = {}
         self.root.title("Nanami 服务控制台 · 手动启停")
-        height = min(830, self.root.winfo_screenheight() - 80)
-        self.root.geometry(f"1060x{height}")
-        self.root.minsize(960, min(760, height))
+        self.display_scale = configure_window(root)
         self.root.configure(bg="#eef2f7")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.configure_styles()
         self.build()
         self.schedule_refresh(100)
+
+    def px(self, value):
+        return pixels(value, self.display_scale)
 
     def configure_styles(self):
         style = ttk.Style(self.root)
@@ -46,17 +48,22 @@ class ControlPanel:
             "Title.TLabel", font=("Microsoft YaHei UI", 20, "bold"), foreground="#0f172a"
         )
         style.configure("Sub.TLabel", font=("Microsoft YaHei UI", 12, "bold"))
-        style.configure("TButton", padding=(12, 7), background="#e2e8f0", foreground="#0f172a")
+        style.configure(
+            "TButton", padding=self.px((12, 7)), background="#e2e8f0", foreground="#0f172a"
+        )
         style.configure("Primary.TButton", background="#2563eb", foreground="white")
         style.map("Primary.TButton", background=[("active", "#1d4ed8"), ("disabled", "#cbd5e1")])
         style.configure("Danger.TButton", background="#fee2e2", foreground="#991b1b")
-        style.configure("Treeview", rowheight=30, background="white", fieldbackground="white")
+        style.configure(
+            "Treeview", rowheight=self.px(30), background="white", fieldbackground="white"
+        )
+        style.configure("TNotebook.Tab", padding=self.px((6, 3)))
         style.configure(
             "Treeview.Heading", font=("Microsoft YaHei UI", 10, "bold"), background="#e2e8f0"
         )
 
     def build(self):
-        outer = ttk.Frame(self.root, padding=16)
+        outer = ttk.Frame(self.root, padding=self.px(16))
         outer.pack(fill="both", expand=True)
         header = ttk.Frame(outer)
         header.pack(fill="x")
@@ -68,17 +75,21 @@ class ControlPanel:
             outer,
             text="打开控制台不启动任何服务。关闭控制台时，会停止由它启动的服务。",
             style="Muted.TLabel",
-        ).pack(anchor="w", pady=(5, 10))
+        ).pack(anchor="w", pady=self.px((5, 10)))
 
         bar = ttk.Frame(outer)
-        bar.pack(fill="x", pady=(0, 10))
+        bar.pack(fill="x", pady=self.px((0, 10)))
         self.action_buttons = []
         self.button(bar, "启动全部服务", self.start_all, "Primary.TButton").pack(side="left")
-        self.button(bar, "全部停止", self.stop_all, "Danger.TButton").pack(side="left", padx=8)
+        self.button(bar, "全部停止", self.stop_all, "Danger.TButton").pack(
+            side="left", padx=self.px(8)
+        )
         ttk.Button(
             bar, text="打开 AstrBot 网页", command=lambda: webbrowser.open(self.paths.dashboard_url)
         ).pack(side="right")
-        ttk.Button(bar, text="QQ 扫码登录", command=self.show_qr).pack(side="right", padx=8)
+        ttk.Button(bar, text="QQ 扫码登录", command=self.show_qr).pack(
+            side="right", padx=self.px(8)
+        )
         self.status_labels = {}
         cards = ttk.Frame(outer)
         cards.pack(fill="x")
@@ -88,8 +99,8 @@ class ControlPanel:
             "voice": ("GPT-SoVITS 语音", "本地音色合成；仅需要语音回复时运行"),
         }
         for key, (title, description) in descriptions.items():
-            card = ttk.Frame(cards, style="Card.TFrame", padding=(14, 5))
-            card.pack(fill="x", pady=3)
+            card = ttk.Frame(cards, style="Card.TFrame", padding=self.px((14, 5)))
+            card.pack(fill="x", pady=self.px(3))
             card.columnconfigure(1, weight=1)
             ttk.Label(
                 card,
@@ -102,22 +113,22 @@ class ControlPanel:
             status.grid(row=0, column=1, sticky="w")
             self.status_labels[key] = status
             self.button(card, "启动", lambda item=key: self.start_service(item)).grid(
-                row=0, column=2, padx=5
+                row=0, column=2, padx=self.px(5)
             )
             self.button(card, "停止", lambda item=key: self.stop_service(item)).grid(
                 row=0, column=3
             )
             ttk.Label(card, text=description, style="Card.TLabel", foreground="#64748b").grid(
-                row=1, column=0, columnspan=4, sticky="w", pady=(3, 0)
+                row=1, column=0, columnspan=4, sticky="w", pady=self.px((3, 0))
             )
 
         auth = ttk.Frame(outer)
-        auth.pack(fill="x", pady=(13, 8))
+        auth.pack(fill="x", pady=self.px((13, 8)))
         ttk.Label(auth, text="管理机器人与插件", style="Sub.TLabel").pack(side="left")
         self.auth_status = ttk.Label(auth, text="先手动启动 AstrBot，再登录", style="Muted.TLabel")
         self.auth_status.pack(side="right")
         form = ttk.Frame(outer)
-        form.pack(fill="x", pady=(0, 9))
+        form.pack(fill="x", pady=self.px((0, 9)))
         self.username = tk.StringVar(
             value=self.paths.config().get("dashboard", {}).get("username", "nanami")
         )
@@ -128,36 +139,36 @@ class ControlPanel:
             ("密码", self.password, 22, True),
             ("验证码（可选）", self.code, 11, True),
         ]:
-            ttk.Label(form, text=label).pack(side="left", padx=(0, 5))
+            ttk.Label(form, text=label).pack(side="left", padx=self.px((0, 5)))
             ttk.Entry(form, textvariable=variable, width=width, show="●" if secret else "").pack(
-                side="left", padx=(0, 10)
+                side="left", padx=self.px((0, 10))
             )
         self.button(form, "登录管理", self.login, "Primary.TButton").pack(side="left")
         ttk.Label(
             outer,
             text="使用你现在的 AstrBot 面板密码。密码和登录令牌只保存在本次窗口内，不写入文件。",
             style="Muted.TLabel",
-        ).pack(anchor="w", pady=(0, 9))
+        ).pack(anchor="w", pady=self.px((0, 9)))
 
         # Reserve room for the log before giving the notebook the remaining space.
         log_box = ttk.Frame(outer)
-        log_box.pack(side="bottom", fill="x", pady=(8, 0))
+        log_box.pack(side="bottom", fill="x", pady=self.px((8, 0)))
         self.notebook = ttk.Notebook(outer)
         self.notebook.pack(fill="both", expand=True)
-        bot_page = ttk.Frame(self.notebook, padding=10)
-        plugin_page = ttk.Frame(self.notebook, padding=10)
+        bot_page = ttk.Frame(self.notebook, padding=self.px(10))
+        plugin_page = ttk.Frame(self.notebook, padding=self.px(10))
         self.notebook.add(bot_page, text="机器人回复")
         self.notebook.add(plugin_page, text="插件运行")
         self.bots = self.tree(
             bot_page, ("id", "type", "status"), ("机器人", "连接类型", "回复状态")
         )
         bot_actions = ttk.Frame(bot_page)
-        bot_actions.pack(side="bottom", fill="x", pady=(8, 0))
+        bot_actions.pack(side="bottom", fill="x", pady=self.px((8, 0)))
         self.button(
             bot_actions, "启用选中机器人", lambda: self.bot_action(True), "Primary.TButton"
         ).pack(side="left")
         self.button(bot_actions, "暂停选中机器人", lambda: self.bot_action(False)).pack(
-            side="left", padx=8
+            side="left", padx=self.px(8)
         )
         groups = self.paths.config().get("platform_settings", {}).get("id_whitelist", [])
         self.range_label = ttk.Label(
@@ -171,10 +182,10 @@ class ControlPanel:
             plugin_page, ("title", "status", "version", "name"), ("插件", "状态", "版本", "标识")
         )
         plugin_actions = ttk.Frame(plugin_page)
-        plugin_actions.pack(side="bottom", fill="x", pady=(8, 0))
+        plugin_actions.pack(side="bottom", fill="x", pady=self.px((8, 0)))
         for title, action in [("启用插件", "on"), ("停用插件", "off"), ("重载插件", "reload")]:
             self.button(plugin_actions, title, lambda item=action: self.plugin_action(item)).pack(
-                side="left", padx=(0, 8)
+                side="left", padx=self.px((0, 8))
             )
         ttk.Label(
             plugin_actions,
@@ -184,7 +195,9 @@ class ControlPanel:
         self.plugins.pack(fill="both", expand=True)
         self.bots.insert("", "end", iid="placeholder", values=("尚未连接管理", "", "未启动服务"))
 
-        ttk.Label(log_box, text="操作记录", style="Sub.TLabel").pack(anchor="w", pady=(0, 5))
+        ttk.Label(log_box, text="操作记录", style="Sub.TLabel").pack(
+            anchor="w", pady=self.px((0, 5))
+        )
         self.log = scrolledtext.ScrolledText(
             log_box,
             height=3,
@@ -202,12 +215,11 @@ class ControlPanel:
         self.action_buttons.append(button)
         return button
 
-    @staticmethod
-    def tree(parent, names, headings):
+    def tree(self, parent, names, headings):
         tree = ttk.Treeview(parent, columns=names, show="headings", height=4, selectmode="browse")
         for name, title in zip(names, headings, strict=True):
             tree.heading(name, text=title)
-            tree.column(name, width=160, minwidth=85, anchor="w")
+            tree.column(name, width=self.px(160), minwidth=self.px(85), anchor="w")
         return tree
 
     def note(self, text):
@@ -456,9 +468,9 @@ class ControlPanel:
         window.title("QQ 扫码登录")
         window.resizable(False, False)
         label = ttk.Label(window)
-        label.pack(padx=24, pady=16)
+        label.pack(padx=self.px(24), pady=self.px(16))
         text = ttk.Label(window, text="使用机器人对应的手机 QQ 扫码，并在手机确认登录。")
-        text.pack(padx=16, pady=5)
+        text.pack(padx=self.px(16), pady=self.px(5))
 
         def update():
             image_path = self.paths.qr_path()
@@ -470,7 +482,7 @@ class ControlPanel:
                 except tk.TclError:
                     text.configure(text="二维码暂不可用，请稍后刷新。")
 
-        ttk.Button(window, text="刷新显示最新二维码", command=update).pack(pady=(6, 16))
+        ttk.Button(window, text="刷新显示最新二维码", command=update).pack(pady=self.px((6, 16)))
         update()
 
     def close(self):
@@ -515,6 +527,7 @@ def main(repo: Path):
     import win32event
     import winerror
 
+    enable_high_dpi()
     mutex = win32event.CreateMutex(None, False, "Local\\NanamiManualControlPanel")
     if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
         root = tk.Tk()

@@ -45,3 +45,7 @@
 Windows、Python 3.12+，使用相邻 `../AstrBot/.venv`。现有环境已安装控制台依赖；新环境运行 `setup_astrbot.ps1` 会一并安装 `requirements-control-panel.txt`。此安装脚本也不会设置开机自启。
 
 默认读取相邻的 `AstrBot`、`NapCat.44498.Shell`、`GPT-sovits/GPT-SoVITS-v2pro-20250604-nvidia50` 目录；NapCat 账号从既有 `napcat.quick.bat` 读取，不硬编码进控制台。自定义 AstrBot 位置时设置 `NANAMI_ASTRBOT_ROOT`。后端与窗口代码在 `control_panel/`，入口在 `scripts/control_panel.py`。
+
+## 高 DPI 显示
+
+控制台在创建窗口前启用 Windows 原生高 DPI 渲染，按所在显示器的 DPI 调整字体、间距、行高和窗口大小，避免系统放大整张窗口造成模糊。更新后关闭旧窗口并重新打开控制台生效；不需要更改 Windows 的显示缩放或 Python 的兼容性设置。如果移动到另一块缩放比例不同的显示器后尺寸不合适，可在该显示器上重新打开控制台。
